@@ -10,7 +10,8 @@
     "typescript": "^5"
   },
   "scripts": {
-    "start": "bun run index.ts"
+    "start": "bun run index.ts",
+    "dev": "bun --watch index.ts"
   },
   "dependencies": {
     "figlet": "^1.10.0"

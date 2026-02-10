@@ -1,10 +1,10 @@
 import figlet from 'figlet';
-import index from './index.html'; 
+import info from './static/info.html'
 
 const server = Bun.serve({
   port: 6741,
   routes: {
-    "/": index, 
+    "/": info, 
     "/figlet": () => {
       const body = figlet.textSync('Bun!');
       return new Response(body);
