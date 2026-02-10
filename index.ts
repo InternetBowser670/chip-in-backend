@@ -4,6 +4,26 @@ interface SocketData {
   route: string;
 }
 
+function broadcastCounts(server: any, route: string) {
+  const globalCount = server.subscriberCount("global-room");
+  const pageCount = server.subscriberCount(route);
+
+  server.publish(
+    route,
+    JSON.stringify({
+      pageCount: pageCount,
+      globalCount: globalCount,
+    }),
+  );
+
+  server.publish(
+    "global-room",
+    JSON.stringify({
+      globalCount: globalCount,
+    }),
+  );
+}
+
 const server = Bun.serve<SocketData>({
   port: 6741,
   routes: {
@@ -22,23 +42,17 @@ const server = Bun.serve<SocketData>({
     open(ws) {
       const { route } = ws.data;
       ws.subscribe(route);
-      server.publish(
-        route,
-        JSON.stringify({
-          count: server.subscriberCount(route),
-        }),
-      );
+      ws.subscribe("global-room");
+
+      broadcastCounts(server, route);
     },
     close(ws) {
       const { route } = ws.data;
-      ws.unsubscribe(route);
 
-      server.publish(
-        route,
-        JSON.stringify({
-          count: server.subscriberCount(route),
-        }),
-      );
+      ws.unsubscribe(route);
+      ws.unsubscribe("global-room")
+
+      broadcastCounts(server, route);
     },
     message() {},
   },
