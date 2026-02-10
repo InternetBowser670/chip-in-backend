@@ -39,6 +39,8 @@ const server = Bun.serve<SocketData>({
     return new Response("Not Found", { status: 404 });
   },
   websocket: {
+    idleTimeout: 30,
+
     open(ws) {
       const { route } = ws.data;
       ws.subscribe(route);
@@ -50,9 +52,12 @@ const server = Bun.serve<SocketData>({
       const { route } = ws.data;
 
       ws.unsubscribe(route);
-      ws.unsubscribe("global-room")
+      ws.unsubscribe("global-room");
 
       broadcastCounts(server, route);
+
+      // delay is necessary to make sure that the user is counted as "left"
+      setTimeout(() => broadcastCounts(server, ws.data.route), 50);
     },
     message() {},
   },
