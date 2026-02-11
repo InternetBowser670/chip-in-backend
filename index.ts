@@ -5,23 +5,19 @@ interface SocketData {
 }
 
 function broadcastCounts(server: any, route: string) {
-  const globalCount = server.subscriberCount("global-room");
-  const pageCount = server.subscriberCount(route);
+  const counts: Record<string, number> = {
+    globalCount: server.subscriberCount("global-room"),
+    pageCount: server.subscriberCount(route),
+  };
 
-  server.publish(
-    route,
-    JSON.stringify({
-      pageCount: pageCount,
-      globalCount: globalCount,
-    }),
-  );
+  counts.coinflipCount = server.subscriberCount("/play/coinflip");
+  counts.minesCount = server.subscriberCount("/play/mines");
+  counts.blackjackCount = server.subscriberCount("/play/blackjack");
 
-  server.publish(
-    "global-room",
-    JSON.stringify({
-      globalCount: globalCount,
-    }),
-  );
+  const payload = JSON.stringify(counts);
+
+  server.publish(route, payload);
+  server.publish("global-room", payload);
 }
 
 const server = Bun.serve<SocketData>({
@@ -37,30 +33,25 @@ const server = Bun.serve<SocketData>({
   },
   websocket: {
     open(ws) {
-      ws.subscribe(ws.data.route);
       ws.subscribe("global-room");
+      ws.subscribe(ws.data.route);
       setTimeout(() => broadcastCounts(server, ws.data.route), 50);
     },
     message(ws, message) {
       try {
         const data = JSON.parse(message.toString());
-
         if (data.type === "CHANGE_ROUTE") {
           const oldRoute = ws.data.route;
           const newRoute = data.route;
-
           if (oldRoute !== newRoute) {
             ws.unsubscribe(oldRoute);
             ws.subscribe(newRoute);
             ws.data.route = newRoute;
-
             broadcastCounts(server, oldRoute);
             broadcastCounts(server, newRoute);
           }
         }
-      } catch (e) {
-        console.error("Error handling WS message:", e);
-      }
+      } catch (e) {}
     },
     close(ws) {
       setTimeout(() => broadcastCounts(server, ws.data.route), 50);
