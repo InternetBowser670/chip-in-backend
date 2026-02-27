@@ -110,7 +110,6 @@ const server = Bun.serve<SocketData>({
 
         if (ws.data.path === "/live-chat") {
           if (data.type === "JOIN_CHAT") {
-            ws.subscribe("chat-room");
             server.publish(
               "chat-room",
               JSON.stringify({
@@ -137,7 +136,6 @@ const server = Bun.serve<SocketData>({
               }),
             );
           } else if (data.type === "LEAVE_CHAT") {
-            ws.unsubscribe("chat-room");
             server.publish(
               "chat-room",
               JSON.stringify({
