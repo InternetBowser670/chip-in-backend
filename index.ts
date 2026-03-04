@@ -21,6 +21,7 @@ function broadcastCounts(server: any, route: string) {
     pageCount: server.subscriberCount(route),
     coinflipCount: server.subscriberCount("/play/coinflip"),
     minesCount: server.subscriberCount("/play/mines"),
+    slotsCount: server.subscriberCount("/play/slots"),
     blackjackCount: server.subscriberCount("/play/blackjack"),
     chatCount: server.subscriberCount("chat-room"),
   });
